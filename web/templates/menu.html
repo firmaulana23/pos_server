@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-coffee"></i> Coffee POS</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="/admin/pos"><i class="fas fa-cash-register"></i> POS</a></li>
+                <li><a href="/admin/menu" class="active"><i class="fas fa-utensils"></i> Menu</a></li>
+                <li><a href="/admin/add-ons"><i class="fas fa-plus-circle"></i> Add-ons</a></li>
+                <li><a href="/admin/transactions"><i class="fas fa-receipt"></i> Transactions</a></li>
+                <li><a href="/admin/expenses"><i class="fas fa-money-bill-wave"></i> Expenses</a></li>
+                <li><a href="/admin/users"><i class="fas fa-users"></i> Users</a></li>
+                <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Menu Management</h1>
+                <button class="btn btn-primary" onclick="showCreateCategoryModal()">
+                    <i class="fas fa-plus"></i> Add Category
+                </button>
+                <button class="btn btn-primary" onclick="showCreateMenuItemModal()">
+                    <i class="fas fa-plus"></i> Add Menu Item
+                </button>
+            </header>
+
+            <!-- Categories Section -->
+            <section class="content-section">
+                <h2>Categories</h2>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Items Count</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoriesTable">
+                            <tr><td colspan="5" class="loading">Loading categories...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Menu Items Section -->
+            <section class="content-section">
+                <h2>Menu Items</h2>
+                <div class="filter-bar">
+                    <select id="categoryFilter" onchange="filterMenuItems()">
+                        <option value="">All Categories</option>
+                    </select>
+                    <select id="availabilityFilter" onchange="filterMenuItems()">
+                        <option value="">All Items</option>
+                        <option value="true">Available</option>
+                        <option value="false">Unavailable</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>COGS</th>
+                                <th>Margin</th>
+                                <th>Available</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="menuItemsTable">
+                            <tr><td colspan="8" class="loading">Loading menu items...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="categoryModalTitle">Add Category</h3>
+                <span class="close" onclick="closeCategoryModal()">&times;</span>
+            </div>
+            <form id="categoryForm">
+                <input type="hidden" id="categoryId">
+                <div class="form-group">
+                    <label for="categoryName">Name:</label>
+                    <input type="text" id="categoryName" required>
+                </div>
+                <div class="form-group">
+                    <label for="categoryDescription">Description:</label>
+                    <textarea id="categoryDescription" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Menu Item Modal -->
+    <div id="menuItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="menuItemModalTitle">Add Menu Item</h3>
+                <span class="close" onclick="closeMenuItemModal()">&times;</span>
+            </div>
+            <form id="menuItemForm">
+                <input type="hidden" id="menuItemId">
+                <div class="form-group">
+                    <label for="menuItemName">Name:</label>
+                    <input type="text" id="menuItemName" required>
+                </div>
+                <div class="form-group">
+                    <label for="menuItemCategory">Category:</label>
+                    <select id="menuItemCategory" required>
+                        <option value="">Select Category</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="menuItemDescription">Description:</label>
+                    <textarea id="menuItemDescription" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="menuItemPrice">Price (IDR):</label>
+                        <input type="number" id="menuItemPrice" min="0" step="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="menuItemCOGS">COGS (IDR):</label>
+                        <input type="number" id="menuItemCOGS" min="0" step="100" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="menuItemAvailable" checked>
+                        Available for sale
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeMenuItemModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/menu.js"></script>
+</body>
+</html>

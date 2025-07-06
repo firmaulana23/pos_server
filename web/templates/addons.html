@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-coffee"></i> Coffee POS</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="/admin/pos"><i class="fas fa-cash-register"></i> POS</a></li>
+                <li><a href="/admin/menu"><i class="fas fa-utensils"></i> Menu</a></li>
+                <li><a href="/admin/add-ons" class="active"><i class="fas fa-plus-circle"></i> Add-ons</a></li>
+                <li><a href="/admin/transactions"><i class="fas fa-receipt"></i> Transactions</a></li>
+                <li><a href="/admin/expenses"><i class="fas fa-money-bill-wave"></i> Expenses</a></li>
+                <li><a href="/admin/users"><i class="fas fa-users"></i> Users</a></li>
+                <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Add-ons Management</h1>
+                <button class="btn btn-primary" onclick="showCreateAddOnModal()">
+                    <i class="fas fa-plus"></i> Add New Add-on
+                </button>
+            </header>
+
+            <!-- Add-ons Section -->
+            <section class="content-section">
+                <div class="filter-bar">
+                    <select id="availabilityFilter" onchange="filterAddOns()">
+                        <option value="">All Add-ons</option>
+                        <option value="true">Available</option>
+                        <option value="false">Unavailable</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Price</th>
+                                <th>COGS</th>
+                                <th>Margin</th>
+                                <th>Available</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="addOnsTable">
+                            <tr><td colspan="8" class="loading">Loading add-ons...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add-on Modal -->
+    <div id="addOnModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="addOnModalTitle">Add New Add-on</h3>
+                <span class="close" onclick="closeAddOnModal()">&times;</span>
+            </div>
+            <form id="addOnForm">
+                <input type="hidden" id="addOnId">
+                <div class="form-group">
+                    <label for="addOnName">Name:</label>
+                    <input type="text" id="addOnName" required>
+                </div>
+                <div class="form-group">
+                    <label for="addOnDescription">Description:</label>
+                    <textarea id="addOnDescription" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="addOnPrice">Price (IDR):</label>
+                        <input type="number" id="addOnPrice" min="0" step="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addOnCOGS">COGS (IDR):</label>
+                        <input type="number" id="addOnCOGS" min="0" step="100" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="addOnAvailable" checked>
+                        Available for use
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddOnModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/addons.js"></script>
+</body>
+</html>

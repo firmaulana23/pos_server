@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-coffee"></i> Coffee POS</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="/admin/pos" class="active"><i class="fas fa-cash-register"></i> POS</a></li>
+                <li><a href="/admin/menu"><i class="fas fa-utensils"></i> Menu</a></li>
+                <li><a href="/admin/add-ons"><i class="fas fa-plus-circle"></i> Add-ons</a></li>
+                <li><a href="/admin/transactions"><i class="fas fa-receipt"></i> Transactions</a></li>
+                <li><a href="/admin/expenses"><i class="fas fa-money-bill-wave"></i> Expenses</a></li>
+                <li><a href="/admin/users"><i class="fas fa-users"></i> Users</a></li>
+                <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Point of Sale</h1>
+            </header>
+
+            <div class="pos-layout">
+                <!-- Menu Items -->
+                <div class="menu-section">
+                    <div class="category-tabs" id="categoryTabs">
+                        <!-- Categories will be loaded here -->
+                    </div>
+                    <div class="menu-grid" id="menuGrid">
+                        <!-- Menu items will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Cart -->
+                <div class="cart-section">
+                    <h3>Current Order</h3>
+                    <div class="cart-items" id="cartItems">
+                        <!-- Cart items will be added here -->
+                    </div>
+                    
+                    <div class="cart-summary">
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span id="subtotal">$0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Tax:</span>
+                            <span id="tax">$0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Discount:</span>
+                            <span id="discount">$0.00</span>
+                        </div>
+                        <div class="summary-row total">
+                            <span>Total:</span>
+                            <span id="total">$0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="cart-actions">
+                        <button onclick="saveTransaction()" class="btn btn-secondary">Save</button>
+                        <button onclick="payTransaction()" class="btn btn-primary">Pay</button>
+                        <button onclick="clearCart()" class="btn btn-danger">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add-on Modal -->
+    <div id="addOnModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h2>Add Add-ons</h2>
+            </div>
+            <div class="modal-body">
+                <div id="addOnsList">
+                    <!-- Add-ons will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeAddOnModal()" class="btn btn-secondary">Cancel</button>
+                <button onclick="confirmAddOns()" class="btn btn-primary">Add to Cart</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div class="modal-header">
+                <h2>Payment</h2>
+            </div>
+            <div class="modal-body">
+                <div class="payment-method">
+                    <label>Payment Method:</label>
+                    <select id="paymentMethod">
+                        <option value="cash">Cash</option>
+                        <option value="card">Credit Card</option>
+                        <option value="digital_wallet">Digital Wallet</option>
+                    </select>
+                </div>
+                <div class="payment-total">
+                    <h3>Total: <span id="paymentTotal">$0.00</span></h3>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closePaymentModal()" class="btn btn-secondary">Cancel</button>
+                <button onclick="confirmPayment()" class="btn btn-primary">Process Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/pos.js"></script>
+</body>
+</html>

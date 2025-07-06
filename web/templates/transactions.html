@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-coffee"></i> Coffee POS</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="/admin/pos"><i class="fas fa-cash-register"></i> POS</a></li>
+                <li><a href="/admin/menu"><i class="fas fa-utensils"></i> Menu</a></li>
+                <li><a href="/admin/add-ons"><i class="fas fa-plus-circle"></i> Add-ons</a></li>
+                <li><a href="/admin/transactions" class="active"><i class="fas fa-receipt"></i> Transactions</a></li>
+                <li><a href="/admin/expenses"><i class="fas fa-money-bill-wave"></i> Expenses</a></li>
+                <li><a href="/admin/users"><i class="fas fa-users"></i> Users</a></li>
+                <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Transactions</h1>
+                <div class="date-filter">
+                    <label for="startDate">From:</label>
+                    <input type="date" id="startDate">
+                    <label for="endDate">To:</label>
+                    <input type="date" id="endDate">
+                    <button onclick="filterTransactions()" class="btn btn-primary">Filter</button>
+                </div>
+            </header>
+
+            <!-- Transactions Section -->
+            <section class="content-section">
+                <div class="filter-bar">
+                    <select id="statusFilter" onchange="filterTransactions()">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="paid">Paid</option>
+                    </select>
+                    <select id="paymentMethodFilter" onchange="filterTransactions()">
+                        <option value="">All Payment Methods</option>
+                        <option value="cash">Cash</option>
+                        <option value="card">Card</option>
+                        <option value="digital_wallet">Digital Wallet</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Transaction No</th>
+                                <th>Date</th>
+                                <th>Cashier</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Payment Method</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTable">
+                            <tr><td colspan="8" class="loading">Loading transactions...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="pagination" id="pagination">
+                    <!-- Pagination will be populated by JavaScript -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Transaction Details Modal -->
+    <div id="transactionModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="transactionModalTitle">Transaction Details</h3>
+                <span class="close" onclick="closeTransactionModal()">&times;</span>
+            </div>
+            <div class="transaction-details">
+                <div class="transaction-info">
+                    <div class="info-row">
+                        <span class="label">Transaction No:</span>
+                        <span id="transactionNo"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Date:</span>
+                        <span id="transactionDate"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Cashier:</span>
+                        <span id="transactionCashier"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Status:</span>
+                        <span id="transactionStatus" class="status"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Payment Method:</span>
+                        <span id="transactionPaymentMethod"></span>
+                    </div>
+                </div>
+                
+                <div class="transaction-items">
+                    <h4>Items</h4>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Qty</th>
+                                <th>Unit Price</th>
+                                <th>Add-ons</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionItems">
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="transaction-summary">
+                    <div class="summary-row">
+                        <span class="label">Subtotal:</span>
+                        <span id="transactionSubtotal"></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="label">Tax:</span>
+                        <span id="transactionTax"></span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="label">Discount:</span>
+                        <span id="transactionDiscount"></span>
+                    </div>
+                    <div class="summary-row total">
+                        <span class="label">Total:</span>
+                        <span id="transactionTotal"></span>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeTransactionModal()">Close</button>
+                    <button class="btn btn-primary" id="printReceiptBtn" onclick="printReceipt()">Print Receipt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Method Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Select Payment Method</h3>
+                <span class="close" onclick="closePaymentModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Choose a payment method to mark this transaction as paid:</p>
+                <div class="payment-methods">
+                    <button class="payment-method-btn" onclick="processPayment('cash')">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>Cash</span>
+                    </button>
+                    <button class="payment-method-btn" onclick="processPayment('card')">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Credit Card</span>
+                    </button>
+                    <button class="payment-method-btn" onclick="processPayment('digital_wallet')">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>Digital Wallet</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/transactions.js"></script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-coffee"></i> Coffee POS</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/admin/dashboard"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="/admin/pos"><i class="fas fa-cash-register"></i> POS</a></li>
+                <li><a href="/admin/menu"><i class="fas fa-utensils"></i> Menu</a></li>
+                <li><a href="/admin/add-ons"><i class="fas fa-plus-circle"></i> Add-ons</a></li>
+                <li><a href="/admin/transactions"><i class="fas fa-receipt"></i> Transactions</a></li>
+                <li><a href="/admin/expenses" class="active"><i class="fas fa-money-bill-wave"></i> Expenses</a></li>
+                <li><a href="/admin/users"><i class="fas fa-users"></i> Users</a></li>
+                <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <h1>Expenses Management</h1>
+                <button class="btn btn-primary" onclick="showCreateExpenseModal()">
+                    <i class="fas fa-plus"></i> Add Expense
+                </button>
+            </header>
+
+            <!-- Summary Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="rawMaterialsTotal">Rp 0</h3>
+                        <p>Raw Materials</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="operationalTotal">Rp 0</h3>
+                        <p>Operational</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalExpenses">Rp 0</h3>
+                        <p>Total Expenses</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expenses Section -->
+            <section class="content-section">
+                <div class="filter-bar">
+                    <div class="date-filter">
+                        <label for="startDate">From:</label>
+                        <input type="date" id="startDate">
+                        <label for="endDate">To:</label>
+                        <input type="date" id="endDate">
+                        <button onclick="filterExpenses()" class="btn btn-primary">Filter</button>
+                    </div>
+                    <select id="typeFilter" onchange="filterExpenses()">
+                        <option value="">All Types</option>
+                        <option value="raw_material">Raw Materials</option>
+                        <option value="operational">Operational</option>
+                    </select>
+                    <input type="text" id="categoryFilter" placeholder="Search category..." onkeyup="filterExpenses()">
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Added by</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expensesTable">
+                            <tr><td colspan="7" class="loading">Loading expenses...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Expense Modal -->
+    <div id="expenseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="expenseModalTitle">Add Expense</h3>
+                <span class="close" onclick="closeExpenseModal()">&times;</span>
+            </div>
+            <form id="expenseForm">
+                <input type="hidden" id="expenseId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="expenseType">Type:</label>
+                        <select id="expenseType" required>
+                            <option value="">Select Type</option>
+                            <option value="raw_material">Raw Materials</option>
+                            <option value="operational">Operational</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseCategory">Category:</label>
+                        <input type="text" id="expenseCategory" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="expenseDescription">Description:</label>
+                    <textarea id="expenseDescription" rows="3" required></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="expenseAmount">Amount (IDR):</label>
+                        <input type="number" id="expenseAmount" min="0" step="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenseDate">Date:</label>
+                        <input type="date" id="expenseDate" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeExpenseModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/expenses.js"></script>
+</body>
+</html>
