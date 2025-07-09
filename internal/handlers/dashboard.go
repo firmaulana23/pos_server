@@ -14,12 +14,12 @@ type DashboardHandler struct {
 }
 
 type DashboardStats struct {
-	TotalSales     float64       `json:"total_sales"`
-	TotalCOGS      float64       `json:"total_cogs"`
-	GrossProfit    float64       `json:"gross_profit"`
-	GrossMargin    float64       `json:"gross_margin_percent"`
-	TotalExpenses  float64       `json:"total_expenses"`
-	NetProfit      float64       `json:"net_profit"`
+	TotalSales             float64       `json:"total_sales"`
+	TotalCOGS              float64       `json:"total_cogs"`
+	GrossProfit            float64       `json:"gross_profit"`
+	GrossMargin            float64       `json:"gross_margin_percent"`
+	TotalOperationalExpenses float64     `json:"total_operational_expenses"`
+	NetProfit              float64       `json:"net_profit"`
 	TotalOrders    int64         `json:"total_orders"`
 	PendingOrders  int64         `json:"pending_orders"`
 	PaidOrders     int64         `json:"paid_orders"`
@@ -71,14 +71,15 @@ func (h *DashboardHandler) GetDashboardStats(c *gin.Context) {
 		salesQuery = h.db.Model(&models.Transaction{}).
 			Where("status = ? AND DATE(created_at) BETWEEN ? AND ?", "paid", startDate, endDate)
 		expenseQuery = h.db.Model(&models.Expense{}).
-			Where("DATE(date) BETWEEN ? AND ?", startDate, endDate)
+			Where("type = ? AND DATE(date) BETWEEN ? AND ?", "operational", startDate, endDate)
 		orderQuery = h.db.Model(&models.Transaction{}).
 			Where("DATE(created_at) BETWEEN ? AND ?", startDate, endDate)
 	} else {
 		// Use all data when no date filters are provided
 		salesQuery = h.db.Model(&models.Transaction{}).
 			Where("status = ?", "paid")
-		expenseQuery = h.db.Model(&models.Expense{})
+		expenseQuery = h.db.Model(&models.Expense{}).
+			Where("type = ?", "operational")
 		orderQuery = h.db.Model(&models.Transaction{})
 	}
 
@@ -107,14 +108,14 @@ func (h *DashboardHandler) GetDashboardStats(c *gin.Context) {
 	var addOnCogsQuery *gorm.DB
 	if startDate != "" && endDate != "" {
 		addOnCogsQuery = h.db.Table("transaction_item_add_ons").
-			Select("COALESCE(SUM(transaction_item_add_ons.quantity * add_ons.cogs), 0)").
+			Select("COALESCE(SUM(transaction_item_add_ons.quantity * add_ons.cogs * transaction_items.quantity), 0)").
 			Joins("JOIN add_ons ON transaction_item_add_ons.add_on_id = add_ons.id").
 			Joins("JOIN transaction_items ON transaction_item_add_ons.transaction_item_id = transaction_items.id").
 			Joins("JOIN transactions ON transaction_items.transaction_id = transactions.id").
 			Where("transactions.status = ? AND DATE(transactions.created_at) BETWEEN ? AND ?", "paid", startDate, endDate)
 	} else {
 		addOnCogsQuery = h.db.Table("transaction_item_add_ons").
-			Select("COALESCE(SUM(transaction_item_add_ons.quantity * add_ons.cogs), 0)").
+			Select("COALESCE(SUM(transaction_item_add_ons.quantity * add_ons.cogs * transaction_items.quantity), 0)").
 			Joins("JOIN add_ons ON transaction_item_add_ons.add_on_id = add_ons.id").
 			Joins("JOIN transaction_items ON transaction_item_add_ons.transaction_item_id = transaction_items.id").
 			Joins("JOIN transactions ON transaction_items.transaction_id = transactions.id").
@@ -135,11 +136,11 @@ func (h *DashboardHandler) GetDashboardStats(c *gin.Context) {
 		stats.GrossMargin = 0
 	}
 
-	// Total Expenses
-	expenseQuery.Select("COALESCE(SUM(amount), 0)").Scan(&stats.TotalExpenses)
+	// Total Operational Expenses
+	expenseQuery.Select("COALESCE(SUM(amount), 0)").Scan(&stats.TotalOperationalExpenses)
 
-	// Net Profit (Gross Profit - Expenses)
-	stats.NetProfit = stats.GrossProfit - stats.TotalExpenses
+	// Net Profit (Gross Profit - Operational Expenses)
+	stats.NetProfit = stats.GrossProfit - stats.TotalOperationalExpenses
 
 	// Order counts
 	orderQuery.Count(&stats.TotalOrders)
@@ -164,7 +165,7 @@ func (h *DashboardHandler) GetDashboardStats(c *gin.Context) {
 
 	// Top menu items
 	topMenuQuery := h.db.Table("transaction_items").
-		Select("menu_items.name, SUM(transaction_items.quantity) as total_sold, SUM(transaction_items.total_price) as total_revenue").
+		Select("menu_items.name, SUM(transaction_items.quantity) as total_sold, SUM(transaction_items.unit_price * transaction_items.quantity) as total_revenue").
 		Joins("JOIN menu_items ON transaction_items.menu_item_id = menu_items.id").
 		Joins("JOIN transactions ON transaction_items.transaction_id = transactions.id")
 
@@ -205,7 +206,7 @@ func (h *DashboardHandler) GetDashboardStats(c *gin.Context) {
 				COALESCE(SUM(total), 0) as amount,
 				COUNT(*) as orders
 			FROM transactions 
-			WHERE status = 'paid' AND DATE(created_at) BETWEEN ? AND ?
+			WHERE deleted_at IS NULL AND status = 'paid' AND DATE(created_at) BETWEEN ? AND ?
 			GROUP BY DATE(created_at)
 			ORDER BY date DESC
 		`, startDate, endDate).Scan(&stats.SalesChart)
@@ -216,7 +217,7 @@ func (h *DashboardHandler) GetDashboardStats(c *gin.Context) {
 				COALESCE(SUM(total), 0) as amount,
 				COUNT(*) as orders
 			FROM transactions 
-			WHERE status = 'paid'
+			WHERE deleted_at IS NULL AND status = 'paid'
 			GROUP BY DATE(created_at)
 			ORDER BY date DESC
 			LIMIT 30
@@ -334,8 +335,8 @@ func (h *DashboardHandler) GetProfitAnalysis(c *gin.Context) {
 	// Add-on revenue and COGS
 	h.db.Raw(`
 		SELECT 
-			COALESCE(SUM(transaction_item_add_ons.total_price), 0) as addon_revenue,
-			COALESCE(SUM(add_ons.cogs * transaction_item_add_ons.quantity), 0) as addon_cogs
+			COALESCE(SUM(add_ons.price * transaction_item_add_ons.quantity * transaction_items.quantity), 0) as addon_revenue,
+			COALESCE(SUM(add_ons.cogs * transaction_item_add_ons.quantity * transaction_items.quantity), 0) as addon_cogs
 		FROM transaction_item_add_ons
 		JOIN add_ons ON transaction_item_add_ons.add_on_id = add_ons.id
 		JOIN transaction_items ON transaction_item_add_ons.transaction_item_id = transaction_items.id
@@ -345,7 +346,7 @@ func (h *DashboardHandler) GetProfitAnalysis(c *gin.Context) {
 
 	// Operational expenses
 	h.db.Model(&models.Expense{}).
-		Where("DATE(date) BETWEEN ? AND ?", startDate, endDate).
+		Where("type = ? AND DATE(date) BETWEEN ? AND ?", "operational", startDate, endDate).
 		Select("COALESCE(SUM(amount), 0)").
 		Scan(&analysis.Expenses)
 

@@ -172,15 +172,12 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 			var addOn models.AddOn
 			tx.First(&addOn, addOnReq.AddOnID)
 
-			// Add-on quantity should be multiplied by menu item quantity
-			totalAddOnQuantity := addOnReq.Quantity * itemReq.Quantity
-
 			transactionItemAddOn := models.TransactionItemAddOn{
 				TransactionItemID: transactionItem.ID,
 				AddOnID:           addOnReq.AddOnID,
-				Quantity:          totalAddOnQuantity,
+				Quantity:          addOnReq.Quantity,
 				UnitPrice:         addOn.Price,
-				TotalPrice:        addOn.Price * float64(totalAddOnQuantity),
+				TotalPrice:        addOn.Price * float64(addOnReq.Quantity) * float64(itemReq.Quantity),
 			}
 
 			if err := tx.Create(&transactionItemAddOn).Error; err != nil {
@@ -390,7 +387,8 @@ func (h *TransactionHandler) UpdateTransaction(c *gin.Context) {
 		itemTotal := menuItem.Price * float64(item.Quantity)
 		
 		for _, addOn := range item.AddOns {
-			itemTotal += addOn.AddOn.Price * float64(addOn.Quantity)
+			// Use the stored TotalPrice which already includes menu item quantity
+			itemTotal += addOn.TotalPrice
 		}
 		total += itemTotal
 	}
@@ -473,7 +471,7 @@ func (h *TransactionHandler) AddTransactionItem(c *gin.Context) {
 			AddOnID:          addOnReq.AddOnID,
 			Quantity:         addOnReq.Quantity,
 			UnitPrice:        addOn.Price,
-			TotalPrice:       addOn.Price * float64(addOnReq.Quantity),
+			TotalPrice:       addOn.Price * float64(addOnReq.Quantity) * float64(req.Quantity),
 			CreatedAt:        time.Now(),
 			UpdatedAt:        time.Now(),
 		}
@@ -502,7 +500,7 @@ func (h *TransactionHandler) AddTransactionItem(c *gin.Context) {
 		itemTotal := itemMenuItem.Price * float64(item.Quantity)
 		
 		for _, addOn := range item.AddOns {
-			itemTotal += addOn.AddOn.Price * float64(addOn.Quantity)
+			itemTotal += addOn.TotalPrice
 		}
 		total += itemTotal
 	}
@@ -589,7 +587,7 @@ func (h *TransactionHandler) UpdateTransactionItem(c *gin.Context) {
 			AddOnID:          addOnReq.AddOnID,
 			Quantity:         addOnReq.Quantity,
 			UnitPrice:        addOn.Price,
-			TotalPrice:       addOn.Price * float64(addOnReq.Quantity),
+			TotalPrice:       addOn.Price * float64(addOnReq.Quantity) * float64(transactionItem.Quantity),
 			CreatedAt:        time.Now(),
 			UpdatedAt:        time.Now(),
 		}
@@ -618,7 +616,7 @@ func (h *TransactionHandler) UpdateTransactionItem(c *gin.Context) {
 		itemTotal := itemMenuItem.Price * float64(item.Quantity)
 		
 		for _, addOn := range item.AddOns {
-			itemTotal += addOn.AddOn.Price * float64(addOn.Quantity)
+			itemTotal += addOn.TotalPrice
 		}
 		total += itemTotal
 	}
@@ -699,7 +697,7 @@ func (h *TransactionHandler) DeleteTransactionItem(c *gin.Context) {
 		itemTotal := itemMenuItem.Price * float64(item.Quantity)
 		
 		for _, addOn := range item.AddOns {
-			itemTotal += addOn.AddOn.Price * float64(addOn.Quantity)
+			itemTotal += addOn.TotalPrice
 		}
 		total += itemTotal
 	}

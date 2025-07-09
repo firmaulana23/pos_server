@@ -60,7 +60,7 @@ func seedDefaultData(db *gorm.DB) error {
 	paymentMethods := []models.PaymentMethod{
 		{Name: "Cash", Code: "cash", IsActive: true},
 		{Name: "Credit Card", Code: "card", IsActive: true},
-		{Name: "Digital Wallet", Code: "digital_wallet", IsActive: true},
+		{Name: "Qris", Code: "qris", IsActive: true},
 	}
 
 	for _, pm := range paymentMethods {
