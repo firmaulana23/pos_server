@@ -290,10 +290,10 @@ func (h *TransactionHandler) DeleteTransaction(c *gin.Context) {
 		return
 	}
 
-	if transaction.Status == "paid" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete paid transaction"})
-		return
-	}
+	// if transaction.Status == "paid" {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete paid transaction"})
+	// 	return
+	// }
 
 	// Start transaction to delete all related records
 	tx := h.db.Begin()

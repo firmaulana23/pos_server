@@ -65,16 +65,16 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, jwtService *auth.JWTService) {
 		{
 			// Categories
 			menu.GET("/categories", menuHandler.GetCategories)
-			menu.POST("/categories", middleware.RequireRole("admin", "manager"), menuHandler.CreateCategory)
-			menu.PUT("/categories/:id", middleware.RequireRole("admin", "manager"), menuHandler.UpdateCategory)
-			menu.DELETE("/categories/:id", middleware.RequireRole("admin", "manager"), menuHandler.DeleteCategory)
+			menu.POST("/categories", menuHandler.CreateCategory)
+			menu.PUT("/categories/:id", menuHandler.UpdateCategory)
+			menu.DELETE("/categories/:id", menuHandler.DeleteCategory)
 
 			// Menu items
 			menu.GET("/items", menuHandler.GetMenuItems)
 			menu.GET("/items/:id", menuHandler.GetMenuItem)
-			menu.POST("/items", middleware.RequireRole("admin", "manager"), menuHandler.CreateMenuItem)
-			menu.PUT("/items/:id", middleware.RequireRole("admin", "manager"), menuHandler.UpdateMenuItem)
-			menu.DELETE("/items/:id", middleware.RequireRole("admin", "manager"), menuHandler.DeleteMenuItem)
+			menu.POST("/items", menuHandler.CreateMenuItem)
+			menu.PUT("/items/:id", menuHandler.UpdateMenuItem)
+			menu.DELETE("/items/:id", menuHandler.DeleteMenuItem)
 		}
 
 		// Add-on management routes
@@ -82,9 +82,9 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, jwtService *auth.JWTService) {
 		{
 			addOns.GET("", addOnHandler.GetAddOns)
 			addOns.GET("/:id", addOnHandler.GetAddOn)
-			addOns.POST("", middleware.RequireRole("admin", "manager"), addOnHandler.CreateAddOn)
-			addOns.PUT("/:id", middleware.RequireRole("admin", "manager"), addOnHandler.UpdateAddOn)
-			addOns.DELETE("/:id", middleware.RequireRole("admin", "manager"), addOnHandler.DeleteAddOn)
+			addOns.POST("", addOnHandler.CreateAddOn)
+			addOns.PUT("/:id", addOnHandler.UpdateAddOn)
+			addOns.DELETE("/:id", addOnHandler.DeleteAddOn)
 		}
 
 		// Menu item add-ons routes
@@ -100,7 +100,7 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, jwtService *auth.JWTService) {
 			transactions.GET("/:id", transactionHandler.GetTransaction)
 			transactions.POST("", transactionHandler.CreateTransaction)
 			transactions.PUT("/:id/pay", transactionHandler.PayTransaction)
-			transactions.DELETE("/:id", middleware.RequireRole("admin", "manager"), transactionHandler.DeleteTransaction)
+			transactions.DELETE("/:id", transactionHandler.DeleteTransaction)
 		}
 
 		// Payment methods
