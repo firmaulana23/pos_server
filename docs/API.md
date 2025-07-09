@@ -580,6 +580,137 @@ Authorization: Bearer <token>
 }
 ```
 
+### Update Transaction
+Update basic transaction information (customer name, tax, discount). Only works on pending transactions.
+
+```http
+PUT /api/v1/transactions/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+    "customer_name": "Jane Smith",
+    "tax": 3000,
+    "discount": 500
+}
+```
+
+**Response:**
+```json
+{
+    "id": 1,
+    "transaction_no": "TXN-20240101-0001",
+    "customer_name": "Jane Smith",
+    "status": "pending",
+    "sub_total": 46000,
+    "tax": 3000,
+    "discount": 500,
+    "total": 48500,
+    "updated_at": "2024-01-01T13:00:00Z"
+}
+```
+
+### Add Item to Transaction
+Add a new menu item to a pending transaction.
+
+```http
+POST /api/v1/transactions/{id}/items
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+    "menu_item_id": 3,
+    "quantity": 1,
+    "add_ons": [
+        {
+            "add_on_id": 2,
+            "quantity": 1
+        }
+    ]
+}
+```
+
+**Response:**
+```json
+{
+    "id": 5,
+    "transaction_id": 1,
+    "menu_item_id": 3,
+    "quantity": 1,
+    "price": 18000,
+    "created_at": "2024-01-01T13:15:00Z"
+}
+```
+
+### Update Transaction Item
+Update an existing transaction item's quantity and add-ons. Only works on pending transactions.
+
+```http
+PUT /api/v1/transactions/{id}/items/{item_id}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+    "quantity": 3,
+    "add_ons": [
+        {
+            "add_on_id": 1,
+            "quantity": 2
+        },
+        {
+            "add_on_id": 3,
+            "quantity": 1
+        }
+    ]
+}
+```
+
+**Response:**
+```json
+{
+    "id": 5,
+    "transaction_id": 1,
+    "menu_item_id": 3,
+    "quantity": 3,
+    "price": 18000,
+    "updated_at": "2024-01-01T13:20:00Z"
+}
+```
+
+### Delete Transaction Item
+Remove an item from a pending transaction. Automatically recalculates transaction totals.
+
+```http
+DELETE /api/v1/transactions/{id}/items/{item_id}
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+    "message": "Transaction item deleted successfully"
+}
+```
+
+**Common Error Responses for Transaction Item Operations:**
+```json
+{
+    "error": "Cannot modify paid transaction"
+}
+```
+
+```json
+{
+    "error": "Transaction not found"
+}
+```
+
+```json
+{
+    "error": "Transaction item not found"
+}
+```
+
 ## Expenses
 
 ### Get Expenses

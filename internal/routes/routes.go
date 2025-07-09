@@ -99,8 +99,14 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, jwtService *auth.JWTService) {
 			transactions.GET("", transactionHandler.GetTransactions)
 			transactions.GET("/:id", transactionHandler.GetTransaction)
 			transactions.POST("", transactionHandler.CreateTransaction)
+			transactions.PUT("/:id", transactionHandler.UpdateTransaction)
 			transactions.PUT("/:id/pay", transactionHandler.PayTransaction)
 			transactions.DELETE("/:id", transactionHandler.DeleteTransaction)
+			
+			// Transaction item routes
+			transactions.POST("/:id/items", transactionHandler.AddTransactionItem)
+			transactions.PUT("/:id/items/:item_id", transactionHandler.UpdateTransactionItem)
+			transactions.DELETE("/:id/items/:item_id", transactionHandler.DeleteTransactionItem)
 		}
 
 		// Payment methods
