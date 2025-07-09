@@ -1,5 +1,54 @@
 // Dashboard Variables
 let salesChart, expenseChart;
+let dashboardRefreshInterval = null;
+
+// Auto-refresh dashboard every 30 seconds if enabled
+function enableAutoRefresh(intervalSeconds = 30) {
+    if (dashboardRefreshInterval) {
+        clearInterval(dashboardRefreshInterval);
+    }
+    
+    dashboardRefreshInterval = setInterval(() => {
+        console.log('Auto-refreshing dashboard...');
+        updateDashboard();
+    }, intervalSeconds * 1000);
+    
+    console.log(`Dashboard auto-refresh enabled (${intervalSeconds}s)`);
+}
+
+function disableAutoRefresh() {
+    if (dashboardRefreshInterval) {
+        clearInterval(dashboardRefreshInterval);
+        dashboardRefreshInterval = null;
+        console.log('Dashboard auto-refresh disabled');
+    }
+}
+
+// Add manual refresh button functionality
+function refreshDashboard() {
+    console.log('Manual dashboard refresh triggered');
+    updateDashboard();
+}
+
+// Window focus refresh - refresh when user returns to dashboard tab
+let lastFocusTime = Date.now();
+window.addEventListener('focus', () => {
+    // Only refresh if it's been more than 5 seconds since last focus
+    if (Date.now() - lastFocusTime > 5000) {
+        console.log('Window focus - refreshing dashboard');
+        updateDashboard();
+    }
+    lastFocusTime = Date.now();
+});
+
+// Listen for storage events (when other tabs make changes)
+window.addEventListener('storage', (e) => {
+    if (e.key === 'dashboard_refresh_needed') {
+        console.log('Detected changes from other tab - refreshing dashboard');
+        updateDashboard();
+        localStorage.removeItem('dashboard_refresh_needed');
+    }
+});
 
 // Initialize Dashboard
 document.addEventListener('DOMContentLoaded', function() {
@@ -10,6 +59,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('About to update dashboard with all data');
     updateDashboard();
+    
+    // Enable auto-refresh every 30 seconds
+    enableAutoRefresh(30);
+    
+    // Add refresh button functionality if it exists
+    const refreshBtn = document.getElementById('refreshDashboard');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', refreshDashboard);
+    }
 });
 
 // Update dashboard
@@ -54,11 +112,77 @@ async function loadDashboardStats(startDate, endDate) {
         const stats = await apiCall(url);
         console.log('Stats received:', stats);
         
-        // Update stat cards
-        document.getElementById('totalSales').textContent = formatCurrency(stats.total_sales);
+        // Debug: Check if DOM elements exist
+        console.log('Checking DOM elements...');
+        const totalSalesEl = document.getElementById('totalSales');
+        const grossProfitEl = document.getElementById('grossProfit');
+        const totalCogsEl = document.getElementById('totalCogs');
+        
+        console.log('totalSales element:', totalSalesEl);
+        console.log('grossProfit element:', grossProfitEl);
+        console.log('totalCogs element:', totalCogsEl);
+        
+        // Debug: Check formatCurrency function
+        console.log('formatCurrency function exists:', typeof formatCurrency);
+        
+        if (typeof formatCurrency === 'function') {
+            console.log('formatCurrency test with 57700:', formatCurrency(57700));
+        } else {
+            console.error('formatCurrency function not found!');
+        }
+        
+        // Debug: Check the actual values before formatting
+        console.log('Raw values:');
+        console.log('- total_sales:', stats.total_sales, typeof stats.total_sales);
+        console.log('- gross_profit:', stats.gross_profit, typeof stats.gross_profit);
+        console.log('- total_cogs:', stats.total_cogs, typeof stats.total_cogs);
+        
+        // Update stat cards with debugging
+        if (totalSalesEl) {
+            const formattedSales = formatCurrency(stats.total_sales);
+            console.log('Setting totalSales to:', formattedSales);
+            totalSalesEl.textContent = formattedSales;
+            console.log('totalSales after update:', totalSalesEl.textContent);
+        } else {
+            console.error('totalSales element not found!');
+        }
+        
+        if (grossProfitEl) {
+            const formattedProfit = formatCurrency(stats.gross_profit);
+            console.log('Setting grossProfit to:', formattedProfit);
+            grossProfitEl.textContent = formattedProfit;
+            console.log('grossProfit after update:', grossProfitEl.textContent);
+        } else {
+            console.error('grossProfit element not found!');
+        }
+        
+        if (totalCogsEl) {
+            const formattedCogs = formatCurrency(stats.total_cogs);
+            console.log('Setting totalCogs to:', formattedCogs);
+            totalCogsEl.textContent = formattedCogs;
+            console.log('totalCogs after update:', totalCogsEl.textContent);
+        } else {
+            console.error('totalCogs element not found!');
+        }
+        
         document.getElementById('totalOrders').textContent = stats.total_orders;
         document.getElementById('netProfit').textContent = formatCurrency(stats.net_profit);
         document.getElementById('pendingOrders').textContent = stats.pending_orders;
+        
+        // Update gross margin with color coding
+        const grossMarginElement = document.getElementById('grossMargin');
+        const marginPercent = stats.gross_margin_percent || 0;
+        grossMarginElement.textContent = `${marginPercent.toFixed(1)}%`;
+        
+        // Apply color coding based on margin percentage
+        grossMarginElement.className = 'margin-text';
+        if (marginPercent >= 25) {
+            grossMarginElement.classList.add('positive');
+        } else if (marginPercent >= 15) {
+            grossMarginElement.classList.add('neutral');
+        } else {
+            grossMarginElement.classList.add('negative');
+        }
         
         // Update top menu items table
         updateTopMenuTable(stats.top_menu_items || []);

@@ -41,6 +41,12 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, jwtService *auth.JWTService) {
 			public.GET("/add-ons/:id", addOnHandler.GetAddOn)
 			public.GET("/payment-methods", transactionHandler.GetPaymentMethods)
 		}
+		
+		// Separate route group for menu item add-ons to avoid route conflicts
+		publicMenuAddOns := api.Group("/public/menu-item-add-ons")
+		{
+			publicMenuAddOns.GET("/:menu_item_id", addOnHandler.GetAddOnsForMenuItem) // Get add-ons for specific menu item
+		}
 	}
 
 	// Protected routes
@@ -79,6 +85,12 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, jwtService *auth.JWTService) {
 			addOns.POST("", middleware.RequireRole("admin", "manager"), addOnHandler.CreateAddOn)
 			addOns.PUT("/:id", middleware.RequireRole("admin", "manager"), addOnHandler.UpdateAddOn)
 			addOns.DELETE("/:id", middleware.RequireRole("admin", "manager"), addOnHandler.DeleteAddOn)
+		}
+
+		// Menu item add-ons routes
+		menuItemAddOns := protected.Group("/menu-item-add-ons")
+		{
+			menuItemAddOns.GET("/:menu_item_id", addOnHandler.GetAddOnsForMenuItem) // Get add-ons for specific menu item
 		}
 
 		// Transaction routes

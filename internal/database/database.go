@@ -76,10 +76,10 @@ func seedDefaultData(db *gorm.DB) error {
 
 	// Seed default categories
 	categories := []models.Category{
-		{Name: "Coffee", Description: "All types of coffee"},
-		{Name: "Tea", Description: "All types of tea"},
-		{Name: "Snacks", Description: "Light snacks and pastries"},
-		{Name: "Beverages", Description: "Non-coffee beverages"},
+		// {Name: "Coffee", Description: "All types of coffee"},
+		// {Name: "Tea", Description: "All types of tea"},
+		// {Name: "Snacks", Description: "Light snacks and pastries"},
+		// {Name: "Beverages", Description: "Non-coffee beverages"},
 	}
 
 	for _, cat := range categories {
@@ -95,12 +95,12 @@ func seedDefaultData(db *gorm.DB) error {
 
 	// Seed default add-ons
 	addOns := []models.AddOn{
-		{Name: "Extra Shot", Description: "Additional espresso shot", Price: 5000, COGS: 2000, IsAvailable: true},
-		{Name: "Whipped Cream", Description: "Fresh whipped cream", Price: 3000, COGS: 1500, IsAvailable: true},
-		{Name: "Extra Milk", Description: "Additional milk", Price: 2000, COGS: 1000, IsAvailable: true},
-		{Name: "Vanilla Syrup", Description: "Vanilla flavored syrup", Price: 3000, COGS: 1200, IsAvailable: true},
-		{Name: "Caramel Syrup", Description: "Caramel flavored syrup", Price: 3000, COGS: 1200, IsAvailable: true},
-		{Name: "Decaf", Description: "Decaffeinated option", Price: 0, COGS: 0, IsAvailable: true},
+		// {Name: "Extra Shot", Description: "Additional espresso shot", Price: 5000, COGS: 2000, IsAvailable: true},
+		// {Name: "Whipped Cream", Description: "Fresh whipped cream", Price: 3000, COGS: 1500, IsAvailable: true},
+		// {Name: "Extra Milk", Description: "Additional milk", Price: 2000, COGS: 1000, IsAvailable: true},
+		// {Name: "Vanilla Syrup", Description: "Vanilla flavored syrup", Price: 3000, COGS: 1200, IsAvailable: true},
+		// {Name: "Caramel Syrup", Description: "Caramel flavored syrup", Price: 3000, COGS: 1200, IsAvailable: true},
+		// {Name: "Decaf", Description: "Decaffeinated option", Price: 0, COGS: 0, IsAvailable: true},
 	}
 
 	for _, addon := range addOns {

@@ -86,7 +86,7 @@ func (h *MenuHandler) GetMenuItems(c *gin.Context) {
 	var menuItems []models.MenuItem
 	var total int64
 
-	query := h.db.Model(&models.MenuItem{}).Preload("Category")
+	query := h.db.Model(&models.MenuItem{}).Preload("Category").Preload("AddOns", "is_available = ?", true)
 	
 	if categoryID != "" {
 		query = query.Where("category_id = ?", categoryID)
@@ -98,10 +98,30 @@ func (h *MenuHandler) GetMenuItems(c *gin.Context) {
 		return
 	}
 
-	// Calculate margin for each item
+	// Calculate margin for each item and its add-ons
 	for i := range menuItems {
 		if menuItems[i].Price > 0 {
 			menuItems[i].Margin = ((menuItems[i].Price - menuItems[i].COGS) / menuItems[i].Price) * 100
+		}
+		
+		// Calculate margins for add-ons
+		for j := range menuItems[i].AddOns {
+			if menuItems[i].AddOns[j].Price > 0 {
+				menuItems[i].AddOns[j].Margin = ((menuItems[i].AddOns[j].Price - menuItems[i].AddOns[j].COGS) / menuItems[i].AddOns[j].Price) * 100
+			}
+		}
+		
+		// Also include global add-ons for this menu item
+		var globalAddOns []models.AddOn
+		if err := h.db.Where("menu_item_id IS NULL AND is_available = ?", true).Find(&globalAddOns).Error; err == nil {
+			// Calculate margins for global add-ons
+			for k := range globalAddOns {
+				if globalAddOns[k].Price > 0 {
+					globalAddOns[k].Margin = ((globalAddOns[k].Price - globalAddOns[k].COGS) / globalAddOns[k].Price) * 100
+				}
+			}
+			// Append global add-ons to menu item's add-ons
+			menuItems[i].AddOns = append(menuItems[i].AddOns, globalAddOns...)
 		}
 	}
 

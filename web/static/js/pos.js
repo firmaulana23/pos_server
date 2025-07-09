@@ -113,14 +113,28 @@ async function loadAddOns() {
     }
 }
 
+// Load add-ons for specific menu item
+async function loadMenuItemAddOns(menuItemId) {
+    try {
+        const response = await apiCall(`/public/menu-item-add-ons/${menuItemId}`);
+        return response.add_ons || [];
+    } catch (error) {
+        console.error('Failed to load menu item add-ons:', error);
+        return [];
+    }
+}
+
 // Add item to cart
-function addToCart(menuItemId) {
+async function addToCart(menuItemId) {
     const menuItem = menuItems.find(item => item.id === menuItemId);
     if (!menuItem) return;
 
-    if (addOns.length > 0) {
+    // Load specific add-ons for this menu item (includes global and specific)
+    const availableAddOns = await loadMenuItemAddOns(menuItemId);
+    
+    if (availableAddOns.length > 0) {
         currentItemForAddOns = menuItem;
-        showAddOnModal();
+        showAddOnModal(availableAddOns);
     } else {
         addItemToCart(menuItem, []);
     }
@@ -150,16 +164,17 @@ function addItemToCart(menuItem, selectedAddOns) {
 }
 
 // Show add-on modal
-function showAddOnModal() {
+function showAddOnModal(availableAddOns = addOns) {
     const modal = document.getElementById('addOnModal');
     const addOnsList = document.getElementById('addOnsList');
     
-    addOnsList.innerHTML = addOns.map(addon => `
+    addOnsList.innerHTML = availableAddOns.map(addon => `
         <div class="addon-item">
             <div class="addon-info">
                 <h5>${addon.name}</h5>
                 <p>${addon.description}</p>
                 <span class="addon-price">${formatCurrency(addon.price)}</span>
+                ${addon.menu_item_id ? '<span class="addon-type">Specific</span>' : '<span class="addon-type">Global</span>'}
             </div>
             <div class="addon-controls">
                 <button type="button" onclick="decreaseAddonQuantity(${addon.id})" class="quantity-btn">-</button>
@@ -309,6 +324,7 @@ function removeFromCart(index) {
 function clearCart() {
     if (confirm('Are you sure you want to clear the cart?')) {
         cart = [];
+        document.getElementById('customerName').value = '';
         updateCartDisplay();
     }
 }
@@ -403,6 +419,7 @@ async function confirmPayment() {
 function prepareTransactionData() {
     const subtotal = calculateSubtotal();
     const tax = subtotal * 0.1;
+    const customerName = document.getElementById('customerName').value.trim();
     
     const items = cart.map(item => ({
         menu_item_id: item.menuItem.id,
@@ -414,6 +431,7 @@ function prepareTransactionData() {
     }));
     
     return {
+        customer_name: customerName,
         items: items,
         tax: tax,
         discount: 0

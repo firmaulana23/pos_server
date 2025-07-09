@@ -61,16 +61,18 @@ function displayTransactions() {
     const tbody = document.getElementById('transactionsTable');
     
     if (transactions.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="no-data">No transactions found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="no-data">No transactions found</td></tr>';
         return;
     }
     
     tbody.innerHTML = transactions.map(transaction => {
         const itemCount = transaction.items ? transaction.items.length : 0;
+        const customerName = transaction.customer_name || '-';
         return `
             <tr>
                 <td>${transaction.transaction_no}</td>
                 <td>${formatDateTime(transaction.created_at)}</td>
+                <td>${customerName}</td>
                 <td>${transaction.user ? transaction.user.username : '-'}</td>
                 <td>${itemCount} item(s)</td>
                 <td>${formatCurrency(transaction.total)}</td>
@@ -145,6 +147,7 @@ async function viewTransaction(transactionId) {
 function displayTransactionDetails(transaction) {
     document.getElementById('transactionNo').textContent = transaction.transaction_no;
     document.getElementById('transactionDate').textContent = formatDateTime(transaction.created_at);
+    document.getElementById('transactionCustomer').textContent = transaction.customer_name || 'N/A';
     document.getElementById('transactionCashier').textContent = transaction.user ? transaction.user.username : '-';
     document.getElementById('transactionPaymentMethod').textContent = formatPaymentMethod(transaction.payment_method);
     
@@ -218,6 +221,7 @@ function printReceipt() {
 function generateReceiptContent() {
     const transactionNo = document.getElementById('transactionNo').textContent;
     const date = document.getElementById('transactionDate').textContent;
+    const customer = document.getElementById('transactionCustomer').textContent;
     const cashier = document.getElementById('transactionCashier').textContent;
     const paymentMethod = document.getElementById('transactionPaymentMethod').textContent;
     
@@ -228,6 +232,7 @@ function generateReceiptContent() {
                 <p>Receipt</p>
                 <p>Transaction: ${transactionNo}</p>
                 <p>Date: ${date}</p>
+                ${customer !== 'N/A' ? `<p>Customer: ${customer}</p>` : ''}
                 <p>Cashier: ${cashier}</p>
             </div>
             <div class="items">

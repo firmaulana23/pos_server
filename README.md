@@ -68,7 +68,7 @@ make dev
 
 - **API Server**: http://localhost:8080
 - **Admin Dashboard**: http://localhost:8080/admin
-- **POS Interface**: http://localhost:8080/pos
+- **POS Interface**: http://localhost:8080/admin/pos
 - **Database Admin** (if using Docker): http://localhost:8081
 
 ### Test Accounts
@@ -78,6 +78,17 @@ make dev
 | Admin | admin@pos.com | admin123 |
 | Manager | manager@pos.com | manager123 |
 | Cashier | cashier@pos.com | cashier123 |
+
+### Quick API Testing
+
+Test the new menu-dependent add-ons functionality:
+```bash
+# Run the API testing script
+./test_api.sh
+
+# Or manually test endpoints
+curl http://localhost:8080/api/v1/public/menu-item-add-ons/4
+```
 
 ## Features
 
@@ -90,7 +101,14 @@ make dev
   - Categories and menu items
   - Price and cost of goods sold (COGS/HPP) tracking
   - Automatic margin calculation
-  - Add-on support for menu items
+  - **Menu-dependent add-ons** (global and menu-specific)
+  - Smart add-on organization for better customer experience
+
+- **Add-ons System**
+  - **Global add-ons**: Available for all menu items (e.g., milk alternatives, sweeteners)
+  - **Menu-specific add-ons**: Only available for specific items (e.g., latte art for lattes)
+  - Advanced filtering and management
+  - Contextual add-on selection in POS
 
 - **Transaction Processing**
   - Point of Sale interface

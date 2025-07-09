@@ -60,6 +60,7 @@
                             <tr>
                                 <th>Transaction No</th>
                                 <th>Date</th>
+                                <th>Customer</th>
                                 <th>Cashier</th>
                                 <th>Items</th>
                                 <th>Total</th>
@@ -69,7 +70,7 @@
                             </tr>
                         </thead>
                         <tbody id="transactionsTable">
-                            <tr><td colspan="8" class="loading">Loading transactions...</td></tr>
+                            <tr><td colspan="9" class="loading">Loading transactions...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -98,6 +99,10 @@
                     <div class="info-row">
                         <span class="label">Date:</span>
                         <span id="transactionDate"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Customer:</span>
+                        <span id="transactionCustomer"></span>
                     </div>
                     <div class="info-row">
                         <span class="label">Cashier:</span>
@@ -152,6 +157,8 @@
                 <div class="modal-actions">
                     <button class="btn btn-secondary" onclick="closeTransactionModal()">Close</button>
                     <button class="btn btn-primary" id="printReceiptBtn" onclick="printReceipt()">Print Receipt</button>
+                    <button class="btn btn-success" id="markAsPaidBtn" onclick="markAsPaidFromModal()" style="display: none;">Mark as Paid</button>
+                    <button class="btn btn-danger" id="deleteTransactionBtn" onclick="deleteTransactionFromModal()" style="display: none;">Delete Transaction</button>
                 </div>
             </div>
         </div>

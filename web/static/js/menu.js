@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 async function loadCategories() {
     try {
         const response = await apiCall('/menu/categories');
-        categories = response.data || [];
+        categories = response || [];
         displayCategories();
     } catch (error) {
         console.error('Failed to load categories:', error);

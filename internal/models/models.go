@@ -45,11 +45,13 @@ type MenuItem struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
 	Category    Category       `json:"category,omitempty"`
+	AddOns      []AddOn        `json:"add_ons,omitempty" gorm:"foreignKey:MenuItemID"` // Menu-specific add-ons
 }
 
-// AddOn represents available add-ons for menu items
+// AddOn represents available add-ons for specific menu items
 type AddOn struct {
 	ID          uint           `json:"id" gorm:"primaryKey"`
+	MenuItemID  *uint          `json:"menu_item_id" gorm:"index"` // Foreign key to MenuItem (nullable for global add-ons)
 	Name        string         `json:"name" gorm:"not null"`
 	Description string         `json:"description"`
 	Price       float64        `json:"price" gorm:"not null"`
@@ -59,6 +61,7 @@ type AddOn struct {
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index"`
+	MenuItem    *MenuItem      `json:"menu_item,omitempty" gorm:"foreignKey:MenuItemID"` // Belongs to MenuItem
 }
 
 // Transaction represents sales transactions
@@ -66,6 +69,7 @@ type Transaction struct {
 	ID            uint                `json:"id" gorm:"primaryKey"`
 	TransactionNo string              `json:"transaction_no" gorm:"uniqueIndex;not null"`
 	UserID        uint                `json:"user_id"`
+	CustomerName  string              `json:"customer_name" gorm:"default:''"`           // Customer name for the order
 	Status        string              `json:"status" gorm:"not null;default:'pending'"` // pending, paid
 	PaymentMethod string              `json:"payment_method"`                           // cash, card, digital_wallet
 	SubTotal      float64             `json:"sub_total" gorm:"not null"`

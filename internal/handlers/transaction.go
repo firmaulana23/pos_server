@@ -17,9 +17,10 @@ type TransactionHandler struct {
 }
 
 type CreateTransactionRequest struct {
-	Items    []TransactionItemRequest `json:"items" binding:"required"`
-	Tax      float64                  `json:"tax"`
-	Discount float64                  `json:"discount"`
+	CustomerName string                   `json:"customer_name"`
+	Items        []TransactionItemRequest `json:"items" binding:"required"`
+	Tax          float64                  `json:"tax"`
+	Discount     float64                  `json:"discount"`
 }
 
 type TransactionItemRequest struct {
@@ -65,6 +66,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	transaction := models.Transaction{
 		TransactionNo: transactionNo,
 		UserID:        userID.(uint),
+		CustomerName:  req.CustomerName,
 		Status:        "pending",
 		Tax:           req.Tax,
 		Discount:      req.Discount,
@@ -153,12 +155,15 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 			var addOn models.AddOn
 			tx.First(&addOn, addOnReq.AddOnID)
 
+			// Add-on quantity should be multiplied by menu item quantity
+			totalAddOnQuantity := addOnReq.Quantity * itemReq.Quantity
+
 			transactionItemAddOn := models.TransactionItemAddOn{
 				TransactionItemID: transactionItem.ID,
 				AddOnID:           addOnReq.AddOnID,
-				Quantity:          addOnReq.Quantity,
+				Quantity:          totalAddOnQuantity,
 				UnitPrice:         addOn.Price,
-				TotalPrice:        addOn.Price * float64(addOnReq.Quantity),
+				TotalPrice:        addOn.Price * float64(totalAddOnQuantity),
 			}
 
 			if err := tx.Create(&transactionItemAddOn).Error; err != nil {

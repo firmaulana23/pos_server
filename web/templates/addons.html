@@ -43,6 +43,10 @@
                         <option value="true">Available</option>
                         <option value="false">Unavailable</option>
                     </select>
+                    <select id="menuItemFilter" onchange="filterAddOns()">
+                        <option value="">All Menu Items</option>
+                        <option value="global">Global Add-ons</option>
+                    </select>
                 </div>
                 <div class="table-container">
                     <table class="data-table">
@@ -51,6 +55,7 @@
                                 <th>ID</th>
                                 <th>Name</th>
                                 <th>Description</th>
+                                <th>Menu Item</th>
                                 <th>Price</th>
                                 <th>COGS</th>
                                 <th>Margin</th>
@@ -59,7 +64,7 @@
                             </tr>
                         </thead>
                         <tbody id="addOnsTable">
-                            <tr><td colspan="8" class="loading">Loading add-ons...</td></tr>
+                            <tr><td colspan="9" class="loading">Loading add-ons...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -76,6 +81,13 @@
             </div>
             <form id="addOnForm">
                 <input type="hidden" id="addOnId">
+                <div class="form-group">
+                    <label for="addOnMenuItemId">Menu Item (optional):</label>
+                    <select id="addOnMenuItemId">
+                        <option value="">Global Add-on (available for all menu items)</option>
+                    </select>
+                    <small class="form-help">Select a menu item to make this add-on specific to that item, or leave empty for global add-on</small>
+                </div>
                 <div class="form-group">
                     <label for="addOnName">Name:</label>
                     <input type="text" id="addOnName" required>

@@ -1,6 +1,7 @@
 // Add-ons Management JavaScript
 
 let addOns = [];
+let menuItems = [];
 let isEditingAddOn = false;
 
 // Initialize page
@@ -10,8 +11,50 @@ document.addEventListener('DOMContentLoaded', async function() {
         return;
     }
     
+    await loadMenuItems();
     await loadAddOns();
 });
+
+// Load menu items for the dropdown
+async function loadMenuItems() {
+    try {
+        const response = await apiCall('/public/menu/items');
+        menuItems = response.data || [];
+        populateMenuItemFilter();
+        populateMenuItemDropdown();
+    } catch (error) {
+        console.error('Failed to load menu items:', error);
+        showError('Failed to load menu items: ' + error.message);
+    }
+}
+
+// Populate menu item filter
+function populateMenuItemFilter() {
+    const select = document.getElementById('menuItemFilter');
+    const currentOptions = Array.from(select.options).slice(2); // Keep first 2 options
+    currentOptions.forEach(option => option.remove());
+    
+    menuItems.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.name;
+        select.appendChild(option);
+    });
+}
+
+// Populate menu item dropdown in form
+function populateMenuItemDropdown() {
+    const select = document.getElementById('addOnMenuItemId');
+    const currentOptions = Array.from(select.options).slice(1); // Keep first option
+    currentOptions.forEach(option => option.remove());
+    
+    menuItems.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.name;
+        select.appendChild(option);
+    });
+}
 
 // Load add-ons
 async function loadAddOns() {
@@ -30,17 +73,25 @@ function displayAddOns() {
     const tbody = document.getElementById('addOnsTable');
     
     if (addOns.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="no-data">No add-ons found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="no-data">No add-ons found</td></tr>';
         return;
     }
     
     tbody.innerHTML = addOns.map(addOn => {
         const margin = addOn.price > 0 ? ((addOn.price - addOn.cogs) / addOn.price * 100).toFixed(1) : 0;
+        const menuItemName = addOn.menu_item_id ? 
+            (menuItems.find(item => item.id === addOn.menu_item_id)?.name || 'Unknown') : 
+            'Global';
         return `
             <tr>
                 <td>${addOn.id}</td>
                 <td>${addOn.name}</td>
                 <td>${addOn.description || '-'}</td>
+                <td>
+                    <span class="menu-item-tag ${addOn.menu_item_id ? 'specific' : 'global'}">
+                        ${menuItemName}
+                    </span>
+                </td>
                 <td>${formatCurrency(addOn.price)}</td>
                 <td>${formatCurrency(addOn.cogs)}</td>
                 <td>${margin}%</td>
@@ -65,6 +116,7 @@ function displayAddOns() {
 // Filter add-ons
 function filterAddOns() {
     const availabilityFilter = document.getElementById('availabilityFilter').value;
+    const menuItemFilter = document.getElementById('menuItemFilter').value;
     
     let filteredAddOns = addOns;
     
@@ -73,20 +125,36 @@ function filterAddOns() {
         filteredAddOns = filteredAddOns.filter(addOn => addOn.is_available === isAvailable);
     }
     
+    if (menuItemFilter !== '') {
+        if (menuItemFilter === 'global') {
+            filteredAddOns = filteredAddOns.filter(addOn => !addOn.menu_item_id);
+        } else {
+            filteredAddOns = filteredAddOns.filter(addOn => addOn.menu_item_id === parseInt(menuItemFilter));
+        }
+    }
+    
     const tbody = document.getElementById('addOnsTable');
     
     if (filteredAddOns.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="no-data">No add-ons match the selected filter</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="no-data">No add-ons match the selected filter</td></tr>';
         return;
     }
     
     tbody.innerHTML = filteredAddOns.map(addOn => {
         const margin = addOn.price > 0 ? ((addOn.price - addOn.cogs) / addOn.price * 100).toFixed(1) : 0;
+        const menuItemName = addOn.menu_item_id ? 
+            (menuItems.find(item => item.id === addOn.menu_item_id)?.name || 'Unknown') : 
+            'Global';
         return `
             <tr>
                 <td>${addOn.id}</td>
                 <td>${addOn.name}</td>
                 <td>${addOn.description || '-'}</td>
+                <td>
+                    <span class="menu-item-tag ${addOn.menu_item_id ? 'specific' : 'global'}">
+                        ${menuItemName}
+                    </span>
+                </td>
                 <td>${formatCurrency(addOn.price)}</td>
                 <td>${formatCurrency(addOn.cogs)}</td>
                 <td>${margin}%</td>
@@ -127,6 +195,7 @@ function editAddOn(addOnId) {
     document.getElementById('addOnId').value = addOn.id;
     document.getElementById('addOnName').value = addOn.name;
     document.getElementById('addOnDescription').value = addOn.description || '';
+    document.getElementById('addOnMenuItemId').value = addOn.menu_item_id || '';
     document.getElementById('addOnPrice').value = addOn.price;
     document.getElementById('addOnCOGS').value = addOn.cogs;
     document.getElementById('addOnAvailable').checked = addOn.is_available;
@@ -141,6 +210,7 @@ function closeAddOnModal() {
 document.getElementById('addOnForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    const menuItemId = document.getElementById('addOnMenuItemId').value;
     const addOnData = {
         name: document.getElementById('addOnName').value,
         description: document.getElementById('addOnDescription').value,
@@ -148,6 +218,11 @@ document.getElementById('addOnForm').addEventListener('submit', async function(e
         cogs: parseFloat(document.getElementById('addOnCOGS').value),
         is_available: document.getElementById('addOnAvailable').checked
     };
+    
+    // Only include menu_item_id if a menu item is selected
+    if (menuItemId) {
+        addOnData.menu_item_id = parseInt(menuItemId);
+    }
     
     try {
         if (isEditingAddOn) {

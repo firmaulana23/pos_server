@@ -32,24 +32,24 @@ func main() {
 	}
 
 	// Create categories
-	if err := seedCategories(db); err != nil {
-		log.Printf("Failed to seed categories: %v", err)
-	}
+	// if err := seedCategories(db); err != nil {
+	// 	log.Printf("Failed to seed categories: %v", err)
+	// }
 
 	// Create menu items
-	if err := seedMenuItems(db); err != nil {
-		log.Printf("Failed to seed menu items: %v", err)
-	}
+	// if err := seedMenuItems(db); err != nil {
+	// 	log.Printf("Failed to seed menu items: %v", err)
+	// }
 
 	// Create add-ons
-	if err := seedAddOns(db); err != nil {
-		log.Printf("Failed to seed add-ons: %v", err)
-	}
+	// if err := seedAddOns(db); err != nil {
+	// 	log.Printf("Failed to seed add-ons: %v", err)
+	// }
 
 	// Create expenses
-	if err := seedExpenses(db); err != nil {
-		log.Printf("Failed to seed expenses: %v", err)
-	}
+	// if err := seedExpenses(db); err != nil {
+	// 	log.Printf("Failed to seed expenses: %v", err)
+	// }
 
 	fmt.Println("✅ Database seeding completed!")
 	fmt.Println("\n📝 Test Accounts:")
