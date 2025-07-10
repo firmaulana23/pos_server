@@ -21,8 +21,11 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, jwtService *auth.JWTService) {
 	// Apply CORS middleware
 	router.Use(middleware.CORSMiddleware())
 
+	// Add path prefix for reverse proxy
+	posGroup := router.Group("/pos")
+	
 	// Public routes
-	api := router.Group("/api/v1")
+	api := posGroup.Group("/api/v1")
 	{
 		// Auth routes
 		auth := api.Group("/auth")
@@ -144,12 +147,12 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, jwtService *auth.JWTService) {
 		}
 	}
 
-	// Serve static files for admin dashboard
-	router.Static("/static", "./web/static")
+	// Serve static files for admin dashboard with path prefix
+	posGroup.Static("/static", "./web/static")
 	router.LoadHTMLGlob("web/templates/*")
 
-	// Admin dashboard routes
-	admin := router.Group("/admin")
+	// Admin dashboard routes with path prefix
+	admin := posGroup.Group("/admin")
 	{
 		admin.GET("/", func(c *gin.Context) {
 			c.HTML(200, "login.html", gin.H{

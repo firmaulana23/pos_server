@@ -1,5 +1,5 @@
-// API Base URL
-const API_BASE = '/api/v1';
+// API Base URL - Updated for reverse proxy
+const API_BASE = '/pos/api/v1';
 
 // Auth utilities
 function getToken() {

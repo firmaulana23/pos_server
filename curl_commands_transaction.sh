@@ -4,7 +4,7 @@
 # Copy and paste these commands in your terminal after setting the variables
 
 # Set these variables first:
-export BASE_URL="http://localhost:8080/api/v1"
+export BASE_URL="http://localhost:8080/pos/api/v1"
 export TOKEN="your_jwt_token_here"
 
 echo "=== Transaction Management Curl Commands ==="
