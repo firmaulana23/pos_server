@@ -79,21 +79,53 @@ func (h *MenuHandler) DeleteCategory(c *gin.Context) {
 // Menu Items
 func (h *MenuHandler) GetMenuItems(c *gin.Context) {
 	categoryID := c.Query("category_id")
+	available := c.Query("available")
+	search := c.Query("search")
+	
+	// Get pagination parameters - default to no limit unless explicitly specified
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
-	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
-	offset := (page - 1) * limit
+	limitStr := c.Query("limit")
+	var limit int
+	var offset int
+	
+	// Only apply pagination if limit is explicitly provided
+	if limitStr != "" {
+		limit, _ = strconv.Atoi(limitStr)
+		offset = (page - 1) * limit
+	}
 
 	var menuItems []models.MenuItem
 	var total int64
 
 	query := h.db.Model(&models.MenuItem{}).Preload("Category").Preload("AddOns", "is_available = ?", true)
 	
+	// Apply filters
 	if categoryID != "" {
 		query = query.Where("category_id = ?", categoryID)
 	}
+	
+	if available != "" {
+		if available == "true" {
+			query = query.Where("is_available = ?", true)
+		} else if available == "false" {
+			query = query.Where("is_available = ?", false)
+		}
+	}
+	
+	if search != "" {
+		query = query.Where("name ILIKE ? OR description ILIKE ?", "%"+search+"%", "%"+search+"%")
+	}
 
+	// Count total records
 	query.Count(&total)
-	if err := query.Offset(offset).Limit(limit).Find(&menuItems).Error; err != nil {
+	
+	// Apply pagination only if limit is specified
+	if limit > 0 {
+		query = query.Offset(offset).Limit(limit)
+	}
+	
+	// Execute query
+	if err := query.Order("created_at DESC").Find(&menuItems).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch menu items"})
 		return
 	}
@@ -125,12 +157,22 @@ func (h *MenuHandler) GetMenuItems(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"data":  menuItems,
-		"total": total,
-		"page":  page,
-		"limit": limit,
-	})
+	response := gin.H{
+		"success": true,
+		"data":    menuItems,
+		"total":   total,
+		"count":   len(menuItems),
+		"message": "Menu items retrieved successfully",
+	}
+	
+	// Add pagination info only if pagination was used
+	if limit > 0 {
+		response["page"] = page
+		response["limit"] = limit
+		response["has_more"] = int64(offset+limit) < total
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func (h *MenuHandler) CreateMenuItem(c *gin.Context) {
